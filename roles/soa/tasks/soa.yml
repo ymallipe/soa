@@ -1,0 +1,55 @@
+---
+
+- name: Create directory ORACLE_HOME for Weblogic setup
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ soa_user }}"
+    group: "{{ soa_group }}"
+  with_items:
+    - "{{ oracle_home }}"
+    - "{{ soa_home }}"
+    - "{{ ori_home }}"
+
+- name: Download Weblogic server tarfile
+  unarchive: 
+    src: https://storage.googleapis.com/yesudasm/fmw_12.2.1.3.0_soaqs_Disk1_1of2.zip
+    dest: "{{ soa_home }}"
+    remote_src: yes
+    owner: "{{ soa_user }}"
+    group: "{{ soa_group }}"
+    mode: 0750
+
+- name: Download Weblogic server tarfile
+  unarchive:
+    src: https://storage.googleapis.com/yesudasm/fmw_12.2.1.3.0_soaqs_Disk1_2of2.zip
+    dest: "{{ soa_home }}"
+    remote_src: yes
+    owner: "{{ soa_user }}"
+    group: "{{ soa_group }}"
+    mode: 0750
+
+
+- name: Copy response template
+  template:
+    src: templates/silentinstall.j2
+    dest: "{{ soa_home }}/silentinstall.rsp"
+    owner: "{{ soa_user }}"
+    group: "{{ soa_group }}"
+    mode: 0600
+
+- name: Copy OraInst.loc file
+  copy:
+    src: files/oraInst.loc
+    dest: "{{ ori_home }}"
+    owner: "{{ soa_user }}"
+    group: "{{ soa_group }}"
+    mode: 0600
+
+- name: Install using silent installation
+  command: "{{ item }}"
+  become_user: "{{ soa_user }}"
+  args:
+    chdir: "{{ soa_home }}"
+  with_items:
+    - java -jar fmw_12.2.1.3.0_wls_quick.jar -silent -responseFile {{ soa_home }}/silentinstall.rsp -invPtrLoc {{ ori_home }}/oraInst.loc   

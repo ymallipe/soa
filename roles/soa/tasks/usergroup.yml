@@ -1,0 +1,13 @@
+---
+
+- name: create group for wls
+  group:
+    name: "{{ soa_group }}"
+    state: present
+
+- name: Create user for WLS
+  user:
+    name: "{{ soa_user }}"
+    comment: User for Weblogic server
+    group: "{{ soa_group }}"
+    append: yes
